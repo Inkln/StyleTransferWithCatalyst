@@ -1,0 +1,144 @@
+shared:
+  image_size: &image_size 512
+  batch_size: &batch_size 4
+  num_workers: &num_workers 12
+  learning_rate: &learning_rate 3e-5
+  learning_rate_2: &learning_rate_2 1e-5
+  weight_decay: &weight_decay 1e-6
+  image_style_path: &image_style_path styles/style_city.jpg
+
+  num_hidden_relu: &num_hidden_relu 12
+  style_block_indices: &style_block_indices [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+  content_block_indices: &content_block_indices [5]
+
+  style_weight: &style_weight 1000000
+  content_weight: &content_weight 100
+  total_variation_weight: &total_variation_weight 1e-4
+
+  src_images_path: &src_image_path /datasets/mscoco/unlabeled2017
+
+model_params:
+  model: ImageTransformer
+  num_hidden_relu: *num_hidden_relu
+
+args:
+  expdir: src
+  logdir: logs_city
+  seed: 42
+  deterministic: False
+  verbose: True
+
+runner_params:
+  input_key: src_image
+  output_key: null
+
+stages:
+  state_params:
+    main_metric: agg_loss
+    minimize_metric: True
+    valid_loader: train
+    num_epochs: 100
+
+  data_params:
+    num_workers: *num_workers
+    batch_size: *batch_size
+    image_size: *image_size
+    path: *src_image_path
+
+    sampler_params:
+      drop_last: True
+      shuffle: per_epoch
+
+  criterion_params:
+    _key_value: True
+    style_loss:
+      criterion: StyleLoss
+      style_filename: *image_style_path
+      num_hidden_relu: *num_hidden_relu
+      image_size: *image_size
+      block_indices: *style_block_indices
+    content_loss:
+      criterion: ContentLoss
+      block_indices: *content_block_indices
+    total_variation_loss:
+      criterion: TotalVariationLoss
+
+  scheduler_params:
+    scheduler: MultiStepLR
+    milestones: [12, 40]
+    gamma: 0.1
+
+  callbacks_params:
+    optimizer:
+      callback: OptimizerCallback
+      grad_clip_params:
+        func: clip_grad_value_
+        clip_value: 5.0
+      metric_key: agg_loss
+
+    loss_tv:
+      callback: CriterionCallback
+      input_key: {}
+      output_key:
+        generated_image: output_tensor
+      prefix: loss_tv
+      criterion_key: total_variation_loss
+      multiplier: *total_variation_weight
+
+    loss_style:
+      callback: CriterionCallback
+      input_key: {}
+      output_key:
+        vgg_generated_features: vgg_predictions
+      prefix: loss_style
+      criterion_key: style_loss
+      multiplier: *style_weight
+
+    loss_content:
+      callback: CriterionCallback
+      input_key: {}
+      output_key:
+        vgg_origin_features: target_predictions
+        vgg_generated_features: result_predictions
+
+      prefix: loss_content
+      criterion_key: content_loss
+      multiplier: *content_weight
+
+    loss_aggregator:
+      callback: MetricAggregationCallback
+      prefix: agg_loss
+      metrics: ["loss_tv", "loss_content", "loss_style"]
+      mode: "sum"
+
+    scheduler:
+      callback: SchedulerCallback
+      reduced_metric: agg_loss
+
+    saver:
+      callback: CheckpointCallback
+      save_n_best: 10
+
+  stage1:
+    state_params:
+      num_epochs: 1
+
+    optimizer_params:
+      optimizer: Lookahead
+      base_optimizer_params:
+        optimizer: RAdam
+        lr: *learning_rate
+        weight_decay: *weight_decay
+      no_bias_weight_decay: True
+
+  stage2:
+    state_params:
+      num_epochs: 3
+
+    optimizer_params:
+      optimizer: Lookahead
+      base_optimizer_params:
+        optimizer: RAdam
+        lr: *learning_rate_2
+        weight_decay: *weight_decay
+      no_bias_weight_decay: True
