@@ -1,20 +1,29 @@
 shared:
   image_size: &image_size 512
-  batch_size: &batch_size 4
+  batch_size: &batch_size 3
   num_workers: &num_workers 12
-  learning_rate: &learning_rate 3e-5
-  learning_rate_2: &learning_rate_2 1e-5
+  learning_rate: &learning_rate 2e-4
+  learning_rate_2: &learning_rate_2 4e-5
   weight_decay: &weight_decay 1e-6
+
+  # {SPECIFY} Style image
   image_style_path: &image_style_path styles/style_city.jpg
 
-  num_hidden_relu: &num_hidden_relu 12
-  style_block_indices: &style_block_indices [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-  content_block_indices: &content_block_indices [5]
+  # {SPECIFY} where to get features for style [1 .. 8] for 256x256 image is enough
+  style_block_indices: &style_block_indices [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+  # {SPECIFY} where to gen content features 3-4 for save small details, 8-9 for only main contours
+  content_block_indices: &content_block_indices [7]
+  # {SPECIFY} max(max(style_block_indices), max(content_block_indices))
+  num_hidden_relu: &num_hidden_relu 14
 
+
+  # {SPECIFY} trade-off between style and content
   style_weight: &style_weight 1000000
-  content_weight: &content_weight 100
+  content_weight: &content_weight 25
+
   total_variation_weight: &total_variation_weight 1e-4
 
+  # {SPECIFY} directory with real-world images from the same domain with inference images
   src_images_path: &src_image_path /datasets/mscoco/unlabeled2017
 
 model_params:
@@ -23,7 +32,7 @@ model_params:
 
 args:
   expdir: src
-  logdir: logs_city
+  logdir: logs
   seed: 42
   deterministic: False
   verbose: True
@@ -37,7 +46,6 @@ stages:
     main_metric: agg_loss
     minimize_metric: True
     valid_loader: train
-    num_epochs: 100
 
   data_params:
     num_workers: *num_workers
@@ -121,7 +129,7 @@ stages:
 
   stage1:
     state_params:
-      num_epochs: 1
+      num_epochs: 3
 
     optimizer_params:
       optimizer: Lookahead
@@ -133,7 +141,7 @@ stages:
 
   stage2:
     state_params:
-      num_epochs: 3
+      num_epochs: 4
 
     optimizer_params:
       optimizer: Lookahead

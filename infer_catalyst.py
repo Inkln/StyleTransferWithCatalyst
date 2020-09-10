@@ -58,17 +58,25 @@ def infer(image_path: str,
 
     transform = get_transform(image_size=image_size)
     image = imageio.imread(image_path)
+    image_shape = image.shape
     image_tensor = transform(image=image)['image'].unsqueeze(0).to(device)
 
     styled_image_tensor = model.inference(image_tensor)
     styled_image = post_transform(styled_image_tensor[0])
 
+    if image_shape[0] > image_shape[1]:
+        delta = int(round((1 - image_shape[1] / image_shape[0]) / 2 * image_size))
+        styled_image = styled_image[:, delta:-delta]
+    else:
+        delta = int(round((1 - image_shape[0] / image_shape[1]) / 2 * image_size))
+        styled_image = styled_image[delta:-delta, :]
+
     imageio.imwrite(result_path, styled_image)
 
 
 if __name__ == "__main__":
-    infer(image_path='https://3.bp.blogspot.com/-XDj-JsVTvKY/UTxgmFfzEKI/AAAAAAAAAAk/oQ4pLC6vZE4/s1600/%25D1%2588%25D0%25B0%25D0%25BD%25D1%2585%25D0%25B0%25D0%25B9.png',
+    infer(image_path='https://i.trbna.com/preset/wysiwyg/7/bc/094eaab2b11e9aa1fd76da6667122.jpeg',
           result_path='result.png',
-          checkpoint_path='logs_city/checkpoints/last.pth',
+          checkpoint_path='logs/checkpoints/last.pth',
           image_size=512,
           device_name='cuda:0')
