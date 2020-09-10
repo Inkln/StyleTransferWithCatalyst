@@ -35,3 +35,6 @@ catalyst-dl run --config config.yml --verbose
 
 4. Inference: \
 See ```infer_catalyst.py``` to find details.
+
+5. Ready models:
+You can find weights for ```512x512 ImageTransformer``` in ```./models```
