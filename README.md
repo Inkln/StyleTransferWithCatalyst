@@ -21,20 +21,19 @@ This repository shows experiment in realtime style transfer with catalyst deep l
 
 ## Usage
 
-1. #####Install dependencies:
+1. **Install dependencies:** 
 ```pip3 install torch==1.6.0 catalyst==20.8.2 numpy tensorflow==2.0.0 tensorboard```
     ##### Attention: Catalyst don't have guaranteed backward compatibility, please, use only specified version.
 
-2. #####Fill config: \
+2. **Configure experiment:** \
 Fill all fields marked by "{SPECIFY}" tag in config.yml
 
-3. #####Run training: 
-```
-catalyst-dl run --config config.yml --verbose
-```
+3. **Run training:** \
+```catalyst-dl run --config config.yml --verbose``` \
+Well recommendation is to install https://github.com/NVIDIA/apex and use more than one GPU. Catalyst provides multi-GPU and distributed training "out-the-box"
 
-4. #####Inference: \
+4. **Inference:** \
 See ```infer_catalyst.py``` to find details.
 
-5. #####Ready models: \
+5. **Ready models:** \
 You can find weights for ```512x512 ImageTransformer``` in ```./models```
