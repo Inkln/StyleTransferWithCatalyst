@@ -29,7 +29,7 @@ This repository shows experiment in realtime style transfer with catalyst deep l
 
 1. **Install dependencies:** 
 ```pip3 install torch==1.6.0 catalyst==20.8.2 numpy tensorflow==2.0.0 tensorboard```
-    ##### Attention: Catalyst don't have guaranteed backward compatibility, please, use only specified version.
+    ##### Attention: Catalyst don't have guaranteed backward compatibility, please use only specified version.
 
 2. **Configure experiment:** \
 Fill all fields marked by "{SPECIFY}" tag in config.yml
