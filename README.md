@@ -19,6 +19,12 @@ This repository shows experiment in realtime style transfer with catalyst deep l
 <img src="images/city_city.png" width="400"/>
 </div>
 
+<div align="center">
+<img src="images/church_origin.png" width="400"/>
+<img src="images/church_style.png" width="400"/>
+</div>
+
+
 ## Usage
 
 1. **Install dependencies:** 
